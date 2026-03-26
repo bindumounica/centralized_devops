@@ -1,0 +1,26 @@
+{{- if .Values.deploymentType == "k8s" }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "generic-app.fullname" . }}
+  labels:
+    {{- include "generic-app.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "generic-app.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "generic-app.selectorLabels" . | nindent 8 }}
+    spec:
+      containers:
+        - name: {{ .Chart.Name }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          ports:
+            - name: http
+              containerPort: {{ .Values.runtime | ternary 8080 3000 "python" }}  # Runtime ports
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+{{- end }}

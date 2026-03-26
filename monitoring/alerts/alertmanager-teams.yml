@@ -1,0 +1,18 @@
+route:
+  group_by: ['alertname']
+  group_wait: 30s
+  group_interval: 5m
+  repeat_interval: 1h
+  receiver: teams-team
+
+receivers:
+- name: teams-team
+  webhook_configs:
+  - url: 'https://your-org.webhook.office.com/webhookb2/YOUR_TEAMS_WEBHOOK@TENANT#channel/IncomingWebhook/KEY/ID'
+    send_resolved: true
+    title: '{{ template "alertname" . }}'
+    text: |-
+      🚨 {{ .Status | toUpper }} 🚨 {{ .GroupLabels.app }} Alert
+      Value: {{ .Value }}
+      Summary: {{ .Annotations.summary }}{{ range .Alerts }}
+      - {{ .Annotations.description }}{{ end }}
