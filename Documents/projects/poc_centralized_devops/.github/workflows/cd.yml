@@ -1,0 +1,48 @@
+name: CD - Manual Prod Deploy
+
+on:
+  workflow_dispatch:  # Manual trigger
+    inputs:
+      env:
+        description: 'Prod env'
+        required: true
+        default: 'prod'
+        type: choice
+        options:
+          - prod
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  deploy-prod:
+    runs-on: ubuntu-latest
+    environment: production  # Manual approval required
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Terraform deploy prod (manual approval)
+        uses: hashicorp/setup-terraform@v3
+
+      - name: Terraform Init
+        run: terraform init -var-file=environments/prod.tfvars
+
+      - name: Terraform Plan
+        run: terraform plan -var-file=environments/prod.tfvars -out=tfplan
+
+      - name: Terraform Apply
+        run: terraform apply tfplan
+        env:
+          # Cloud creds from OIDC or secrets
+
+      - name: Notify Slack on deploy
+        uses: slackapi/slack-github-action@v1.26.0
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK }}
+        with:
+          payload: |
+            {
+              \"text\": \"Prod deploy complete: ${{ github.repository }} (${{ github.sha }}) by ${{ github.actor }}\"
+            }
+

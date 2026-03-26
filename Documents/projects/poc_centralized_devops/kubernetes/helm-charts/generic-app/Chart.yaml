@@ -1,0 +1,8 @@
+apiVersion: v2
+name: generic-app
+description: Generic runtime-agnostic app Helm chart for POC
+type: application
+version: 0.1.0
+appVersion: "1.0"
+
+dependencies: []
