@@ -2,7 +2,7 @@ name: CI - Build/Test/Deploy Dev/Staging
 
 on:
   push:
-    branches: [main]
+    branches: [ main ]
   pull_request:
 
 jobs:

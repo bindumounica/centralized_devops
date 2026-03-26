@@ -1,7 +1,0 @@
-# Prod example
-cloud_provider = "aws"
-region = "us-west-2"
-deployment_type = "k8s"
-app_name = "myapp-prod"
-app_image = "ghcr.io/org/myapp:latest"
-replicas = 5

@@ -1,7 +1,0 @@
-# Staging example
-cloud_provider = "aws"
-region = "us-east-1"
-deployment_type = "k8s"
-app_name = "myapp-staging"
-app_image = "ghcr.io/org/myapp:staging"
-replicas = 3

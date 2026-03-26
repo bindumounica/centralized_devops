@@ -1,7 +1,0 @@
-# Example dev vars
-cloud_provider = "aws"
-deployment_type = "k8s"
-runtime = "python"
-app_name = "myapp"
-region = "us-east-1"
-# Add deps: db_enabled = true, storage_size_gb = 20
