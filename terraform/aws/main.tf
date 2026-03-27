@@ -4,14 +4,17 @@ terraform {
       source  = "hashicorp/aws"
       version = "~> 5.0"
     }
-    kubernetes = {
-      source  = "hashicorp/kubernetes"
-      version = "~> 2.0"
-    }
-    helm = {
-      source  = "hashicorp/helm"
-      version = "~> 2.0"
-    }
+  }
+}
+
+data "aws_vpc" "default" {
+  default = true
+}
+
+data "aws_subnets" "default" {
+  filter {
+    name   = "vpc-id"
+    values = [data.aws_vpc.default.id]
   }
 }
 
@@ -19,23 +22,9 @@ provider "aws" {
   region = var.region
 }
 
-# EKS POC cluster
-resource "aws_eks_cluster" "poc" {
-  name     = var.app_name
-  role_arn = aws_iam_role.cluster.arn
-  version  = "1.28"
-
-vpc_config {
-    # Simplified POC - requires VPC setup
-    subnet_ids = []
-  }
-  # Simplified
-
-}
-
-# Simplified - full VPC/IAM in production
 resource "aws_iam_role" "cluster" {
   name = "${var.app_name}-cluster"
+
   assume_role_policy = jsonencode({
     Statement = [{
       Action = "sts:AssumeRole"
@@ -44,13 +33,30 @@ resource "aws_iam_role" "cluster" {
         Service = "eks.amazonaws.com"
       }
     }]
+    Version = "2012-10-17"
   })
 }
 
-# App deployment placeholder (use Helm/kubectl post-cluster)
-resource "null_resource" "deploy_app" {
-  provisioner "local-exec" {
-    command = "kubectl apply -f ../../examples/python-app/k8s-test.yaml"
-  }
-  depends_on = [aws_eks_cluster.poc]
+resource "aws_iam_role_policy_attachment" "AmazonEKSClusterPolicy" {
+  policy_arn = "arn:aws:iam::aws:policy/AmazonEKSClusterPolicy"
+  role       = aws_iam_role.cluster.name
 }
+
+resource "aws_eks_cluster" "poc" {
+  name     = var.cluster_name
+  role_arn = aws_iam_role.cluster.arn
+
+  vpc_config {
+    subnet_ids              = data.aws_subnets.default.ids
+    endpoint_private_access = true
+    endpoint_public_access  = true
+    public_access_cidrs     = ["0.0.0.0/0"]
+  }
+
+  depends_on = [aws_iam_role_policy_attachment.AmazonEKSClusterPolicy]
+}
+
+output "cluster_endpoint" {
+  value = aws_eks_cluster.poc.endpoint
+}
+

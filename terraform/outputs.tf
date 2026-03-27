@@ -1,4 +1,6 @@
 output "cluster_endpoint" {
-  value = aws_eks_cluster.poc.endpoint
+  value = module.aws_cluster.cluster_endpoint
 }
+
+
 
