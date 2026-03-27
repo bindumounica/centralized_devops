@@ -1,15 +1,4 @@
-terraform {
-  required_providers {
-    azurerm = {
-      source  = "hashicorp/azurerm"
-      version = "~> 3.0"
-    }
-  }
-}
-
-provider "azurerm" {
-  features {}
-}
+# Azure provider inherited from root
 
 resource "azurerm_kubernetes_cluster" "poc" {
   name                = var.cluster_name
@@ -27,6 +16,4 @@ resource "azurerm_kubernetes_cluster" "poc" {
     type = "SystemAssigned"
   }
 }
-
-# Simplified POC
 
