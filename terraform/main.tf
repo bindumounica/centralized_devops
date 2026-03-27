@@ -44,7 +44,6 @@ module "aws_cluster" {
   deployment_type = var.deployment_type
   app_image = var.app_image
   cloud_provider = "aws"
-  cluster_name = var.cluster_name
 }
 
 # Outputs
