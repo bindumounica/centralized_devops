@@ -48,6 +48,7 @@ module "gcp_cluster" {
   source = "./gcp"
 
   region = var.region
+  app_name = var.app_name
   project_id = var.project_id
   cluster_name = var.cluster_name
   for_each = var.cloud_provider == "gcp" ? toset(["gcp"]) : toset([])
