@@ -1,7 +1,18 @@
-# Example dev vars
 cloud_provider = "aws"
-deployment_type = "k8s"
-runtime = "python"
-app_name = "myapp"
 region = "us-east-1"
-# Add deps: db_enabled = true, storage_size_gb = 20
+app_name = "myapp"
+deployment_type = "k8s"
+app_image = "nginx:alpine"
+replicas = 2
+namespace = "default"
+cluster_name = "myeks"
+app_secret = "tempsecret"
+deps_enabled = {
+  db = true
+  queue = false
+  storage = true
+}
+project_id = ""
+resource_group_name = ""
+location = ""
+

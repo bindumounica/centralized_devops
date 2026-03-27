@@ -1,7 +1,15 @@
-# Prod example
 cloud_provider = "aws"
-region = "us-west-2"
-deployment_type = "k8s"
+region = "us-east-1"
 app_name = "myapp-prod"
-app_image = "ghcr.io/org/myapp:latest"
-replicas = 5
+deployment_type = "k8s"
+app_image = "nginx:alpine"
+replicas = 3
+namespace = "prod"
+cluster_name = "myeks-prod"
+app_secret = "prodsecret"
+deps_enabled = {
+  db = true
+  queue = true
+  storage = true
+}
+

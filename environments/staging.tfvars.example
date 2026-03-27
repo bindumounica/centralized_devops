@@ -1,7 +1,15 @@
-# Staging example
 cloud_provider = "aws"
 region = "us-east-1"
-deployment_type = "k8s"
 app_name = "myapp-staging"
-app_image = "ghcr.io/org/myapp:staging"
-replicas = 3
+deployment_type = "k8s"
+app_image = "nginx:alpine"
+replicas = 2
+namespace = "staging"
+cluster_name = "myeks-staging"
+app_secret = "stagingsecret"
+deps_enabled = {
+  db = true
+  queue = false
+  storage = true
+}
+
