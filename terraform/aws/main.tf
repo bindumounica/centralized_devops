@@ -19,41 +19,36 @@ provider "aws" {
   region = var.region
 }
 
-# Cluster/Infrastructure (EKS for k8s, EC2 for vm, etc.)
-module "eks_cluster" {
-  source = "terraform-aws-modules/eks/aws"  # External module placeholder
-  count  = var.deployment_type == "k8s" ? 1 : 0
-  cluster_name = var.app_name
-  cluster_version = "1.28"
-  # Subnets/VPC vars from root
+# EKS POC cluster
+resource "aws_eks_cluster" "poc" {
+  name     = var.app_name
+  role_arn = aws_iam_role.cluster.arn
+  version  = "1.28"
+
+  vpc_config {
+    subnet_ids = [aws_subnet.main.id] # Add VPC/subnets
+  }
+  depends_on = [aws_iam_role_policy_attachment.cluster-AmazonEKSClusterPolicy]
 }
 
-# App
-module "app" {
-  source = "../../modules/app-deployment"
-  app_name = var.app_name
-  app_image = var.app_image
-  deployment_type = var.deployment_type
-  cloud_provider = var.cloud_provider
+# Simplified - full VPC/IAM in production
+resource "aws_iam_role" "cluster" {
+  name = "${var.app_name}-cluster"
+  assume_role_policy = jsonencode({
+    Statement = [{
+      Action = "sts:AssumeRole"
+      Effect = "Allow"
+      Principal = {
+        Service = "eks.amazonaws.com"
+      }
+    }]
+  })
 }
 
-# Monitoring
-module "monitoring" {
-  source = "../../modules/monitoring"
-  cloud_provider = var.cloud_provider
-  cluster_name = var.app_name
-}
-
-# Secrets
-module "secrets" {
-  source = "../../modules/secrets"
-  cloud_provider = var.cloud_provider
-  secret_name = "${var.app_name}-db-pass"
-  secret_value = "supersecret"  # From secrets or generate
-}
-
-# Deps
-module "deps" {
-  source = "../../modules/dependencies"
-  cloud_provider = var.cloud_provider
+# App deployment placeholder (use Helm/kubectl post-cluster)
+resource "null_resource" "deploy_app" {
+  provisioner "local-exec" {
+    command = "kubectl apply -f ../../examples/python-app/k8s-test.yaml"
+  }
+  depends_on = [aws_eks_cluster.poc]
 }

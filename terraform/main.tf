@@ -1,6 +1,6 @@
-# Root - selects cloud module
+# Root config - calls shared modules + cloud infra
 
-module "app_deployment" {
+module "shared_app" {
   source = "./modules/app-deployment"
   
   cloud_provider = var.cloud_provider
@@ -11,48 +11,43 @@ module "app_deployment" {
   namespace = var.namespace
 }
 
-module "monitoring" {
+module "shared_monitoring" {
   source = "./modules/monitoring"
   
   cloud_provider = var.cloud_provider
   cluster_name = var.cluster_name
 }
 
-module "secrets" {
+module "shared_secrets" {
   source = "./modules/secrets"
   
   cloud_provider = var.cloud_provider
-  secret_name = "app-secret"
+  secret_name = "${var.app_name}-secret"
   secret_value = var.app_secret
 }
 
-module "dependencies" {
+module "shared_deps" {
   source = "./modules/dependencies"
   
   cloud_provider = var.cloud_provider
   deps_enabled = var.deps_enabled
 }
 
-# Cloud-specific infra via count/for_each (init-time known)
-module "aws_infra" {
-  count  = var.cloud_provider == "aws" ? 1 : 0
+# Cloud infra (select one dir/script)
+# cd terraform/aws && terraform init/apply for AWS POC
+# AWS POC infra
+module "aws_cluster" {
   source = "./aws"
   
   region = var.region
+  app_name = var.app_name
+  deployment_type = var.deployment_type
+  app_image = var.app_image
+  cloud_provider = "aws"
+  cluster_name = var.cluster_name
 }
 
-module "gcp_infra" {
-  count  = var.cloud_provider == "gcp" ? 1 : 0
-  source = "./gcp"
-  
-  project_id = var.project_id
-  region = var.region
-}
-
-module "azure_infra" {
-  count  = var.cloud_provider == "azure" ? 1 : 0
-  source = "./azure"
-  
-  resource_group_name = var.resource_group_name
-  location = var.location
+# Outputs
+output "app_endpoint" {
+  value = module.shared_app.app_endpoint
 }
