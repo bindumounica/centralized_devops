@@ -1,7 +1,9 @@
-output "app_endpoint" {
-  value = module.app.app_endpoint
+# Simplified POC outputs
+output "cluster_name" {
+  value = aws_eks_cluster.poc.name
 }
 
-output "grafana_url" {
-  value = module.monitoring.grafana_url
+output "cluster_endpoint" {
+  value = aws_eks_cluster.poc.endpoint
 }
+

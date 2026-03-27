@@ -1,3 +1,4 @@
-output "all_outputs" {
-  value = module.cloud_infra
+output "cluster_endpoint" {
+  value = aws_eks_cluster.poc.endpoint
 }
+

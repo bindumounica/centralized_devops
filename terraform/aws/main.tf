@@ -25,10 +25,12 @@ resource "aws_eks_cluster" "poc" {
   role_arn = aws_iam_role.cluster.arn
   version  = "1.28"
 
-  vpc_config {
-    subnet_ids = [aws_subnet.main.id] # Add VPC/subnets
+vpc_config {
+    # Simplified POC - requires VPC setup
+    subnet_ids = []
   }
-  depends_on = [aws_iam_role_policy_attachment.cluster-AmazonEKSClusterPolicy]
+  # Simplified
+
 }
 
 # Simplified - full VPC/IAM in production

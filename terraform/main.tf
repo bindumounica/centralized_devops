@@ -44,7 +44,9 @@ module "aws_cluster" {
   deployment_type = var.deployment_type
   app_image = var.app_image
   cloud_provider = "aws"
+  cluster_name = "poc-cluster"
 }
+
 
 # Outputs
 output "app_endpoint" {
