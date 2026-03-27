@@ -4,6 +4,6 @@ WORKDIR /app
 COPY . .
 RUN pip install flask prometheus-client requests
 
-EXPOSE 5000  # App + metrics
+EXPOSE 5000
 
 CMD ["python", "app.py"]
