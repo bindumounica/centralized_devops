@@ -1,83 +1,78 @@
-# POC: Centralized DevOps Templates
+# POC Centralized DevOps Templates
 
-## 🎯 Project Overview
-This POC delivers **centralized, generic DevOps templates** for **any app type/runtime** (Java/Python/Node.js + deps like DB/queues/storage), **any deployment** (K8s EKS/AKS/GKE, VMs EC2, serverless), **multi-cloud** (AWS/GCP/Azure), using:
-- **IaC**: Terraform (modular, var-driven).
-- **CI/CD**: GitHub Actions (manual prod deploys).
-**Observability**: Prometheus/Grafana metrics + Teams alerts.
-- **Security**: Cloud-native secrets (Secrets Manager/Key Vault).
+Multi-cloud (AWS/GCP/Azure), any runtime (Java/Python/Node), deploy (K8s/VM/serverless), GH Actions, Terraform, Prom/Grafana alerts, cloud secrets.
 
-**Fully generic**: One set of templates works across all via vars (`cloud_provider`, `runtime`, `deployment_type`).
+## Credentials Setup
 
-## 🏗️ Architecture Diagram (Mermaid)
-```mermaid
-graph TB
-  User[User/Terraform CLI] --> Root[terraform/main.tf]
-  Root --> Cloud[AWS/GCP/Azure root]
-  Cloud --> App[app-deployment module K8s/VM/Serverless]
-  Cloud --> Mon[monitoring module Prom/Grafana]
-  Cloud --> Secrets[secrets module AWS SM/Key Vault]
-  Cloud --> Deps[dependencies module DB/Storage/Queue]
-  
-  GitHub[GitHub Actions] --> CI[ci.yml build/test dev/staging]
-  GitHub --> CD[cd.yml manual prod+Teams]
-  
-  K8s[Helm generic-app] <--> App
-  Prom[Prometheus /metrics] <--> App
-  Alert[Alertmanager Teams] <--> Prom
-  
-  Examples[Python/Node/Java Docker] --> App
+### AWS
+```
+export AWS_ACCESS_KEY_ID=...
+export AWS_SECRET_ACCESS_KEY=...
+export AWS_DEFAULT_REGION=us-east-1
+```
+Or IAM role.
+
+### GCP
+```
+gcloud auth application-default login
+export GOOGLE_PROJECT_ID=your-project
+```
+Or service account key:
+```
+export GOOGLE_CREDENTIALS=/path/to/key.json
 ```
 
-## 📁 Structure
+### Azure
 ```
-.
-├── terraform/
-│   ├── main.tf (root entry)
-│   ├── aws/ (cloud root: EKS/EC2 + calls modules)
-│   └── modules/ (shared: app-deployment, monitoring, etc.)
-├── kubernetes/helm-charts/generic-app/ (runtime-agnostic)
-├── .github/workflows/ (CI/CD)
-├── monitoring/ (Prom config, Grafana JSON, alerts)
-├── examples/ (Python/Node/Java test apps)
-├── environments/ (*.tfvars.example)
-└── scripts/ (tf-init.sh, deploy.sh)
+az login
+export ARM_SUBSCRIPTION_ID=...
+```
+Or service principal:
+```
+export ARM_CLIENT_ID=...
+export ARM_CLIENT_SECRET=...
+export ARM_TENANT_ID=...
+export ARM_SUBSCRIPTION_ID=...
 ```
 
-## 🚀 Quick Start & Demo
-1. **Prep**: `cp environments/dev.tfvars.example dev.tfvars`, edit (e.g., `cloud_provider = \"aws\"`, `app_image = \"nginx:alpine\"`).
-2. **IaC**: `./scripts/tf-init.sh aws dev && terraform plan/apply -var-file=dev.tfvars`
-3. **CI/CD**: Push → auto dev deploy; UI trigger cd.yml for prod.
-4. **Local test**:
+### GH Actions
+Repo secrets:
+- `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`
+- `GOOGLE_CREDENTIALS` (JSON)
+- `ARM_CLIENT_ID`, `ARM_CLIENT_SECRET`, etc.
+- `SLACK_WEBHOOK_URL`
+
+## Usage
+1. Edit `environments/dev.tfvars` (cloud_provider = "aws" | "gcp" | "azure")
+2. `cd terraform && terraform init`
+3. `terraform plan -var-file=../environments/dev.tfvars`
+4. `terraform apply -var-file=../environments/dev.tfvars`
+5. GH: `gh workflow run ci.yml`
+
+## Testing/Verification
+**After apply:**
+1. **App**:
    ```
-   cd examples/python-app
-   docker build -t python-app . && docker run -p 5000:5000 python-app
-   open http://localhost:5000  # App
-   open http://localhost:5000/metrics  # Metrics ready for Prom
+   kubectl port-forward deployment/generic-app 8080:8080
+   open http://localhost:8080  # App homepage/metrics
    ```
-5. **Helm**: `helm install test-app kubernetes/helm-charts/generic-app/ --dry-run`
 
-## 🔧 Components Explained
-| Component | Description | Generic How |
-|-----------|-------------|-------------|
-| **Terraform** | IaC for infra/app/monitoring | Vars: `cloud_provider=aws`, `deployment_type=k8s` |
-| **Helm** | K8s apps | `values.yaml`: `image.repository`, `runtime=python` ports/resources |
-| **GitHub Actions** | CI: build/test/push/deploy dev; CD: manual prod | Env approvals, OIDC creds |
-| **Prometheus** | Scrape app/infra `/metrics` | Config targets generic-app |
-| **Grafana** | Dashboards (req rate/latency/errors) | JSON import, Prom datasource |
-**Alerts** | High error/latency → Teams channel | Alertmanager config (teams.yml)
+2. **Grafana Dashboard**:
+   ```
+   kubectl port-forward svc/grafana 3000:80 -n monitoring
+   open http://localhost:3000  # admin/prom-operator
+   ```
 
-## 📈 Extensibility
-- **New Cloud**: Copy `aws/` → `gcp/main.tf` (GKE + GCP modules).
-- **VM/Serverless**: Extend `app-deployment/main.tf` conditionals.
-- **Custom App**: Build Docker, set `app_image`, expose `/metrics`.
-- **Prod**: Create `prod.tfvars`, set GitHub env protections.
+3. **Prometheus**:
+   ```
+   kubectl port-forward svc/prometheus-kube-prometheus-prometheus 9090:9090 -n monitoring
+   open http://localhost:9090
+   ```
 
-## ✅ Ready to Use
-- Terraform providers.tf populated.
-- All env tfvars.example.
-- Full diagram/explanation above.
+Cloud LB endpoints: `terraform output app_endpoint`
 
-Test: `terraform init && terraform plan -var-file=environments/dev.tfvars.example -var='cloud_provider=aws' -var='region=us-east-1' -var='app_image=nginx:alpine'`
+## Examples
+`examples/python-app/Dockerfile`, K8s yamls.
 
-All requirements met. Docker daemon note: Start Docker Desktop for local app demo.
+See TODO.md.
+
