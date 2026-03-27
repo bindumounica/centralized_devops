@@ -1,7 +1,7 @@
 # Root - selects cloud module
 
 module "cloud_infra" {
-  source = "./${var.cloud_provider}"
+  source = var.cloud_provider == "aws" ? "./aws" : var.cloud_provider == "gcp" ? "./gcp" : "./azure"
   
   region = var.region
   app_name = var.app_name
