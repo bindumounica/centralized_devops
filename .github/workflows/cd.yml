@@ -1,10 +1,10 @@
 name: CD - Manual Prod Deploy
 
 on:
-  workflow_dispatch:  # Manual trigger
+  workflow_dispatch:
     inputs:
       env:
-        description: 'Prod env'
+        description: 'Environment'
         required: true
         default: 'prod'
         type: choice
@@ -16,33 +16,29 @@ permissions:
   id-token: write
 
 jobs:
-  deploy-prod:
+  deploy:
     runs-on: ubuntu-latest
-    environment: production  # Manual approval required
+    environment: ${{ inputs.env }}
     steps:
       - uses: actions/checkout@v4
 
-      - name: Terraform deploy prod (manual approval)
+      - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
 
       - name: Terraform Init
-        run: terraform init -var-file=environments/prod.tfvars
+        run: cd terraform && terraform init -var-file=../environments/${{ inputs.env }}.tfvars.example
 
       - name: Terraform Plan
-        run: terraform plan -var-file=environments/prod.tfvars -out=tfplan
+        run: cd terraform && terraform plan -var-file=../environments/${{ inputs.env }}.tfvars
 
       - name: Terraform Apply
-        run: terraform apply tfplan
-        env:
-          # Cloud creds from OIDC or secrets
+        run: cd terraform && terraform apply -auto-approve -var-file=../environments/${{ inputs.env }}.tfvars
 
-      - name: Notify Slack on deploy
-        uses: slackapi/slack-github-action@v1.26.0
+      - name: Teams Notification
+        if: always()
+        uses: microsoft/teams-webhook-action@v0.2.0  # Fixed Teams
         env:
-          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK }}
+          TEAMS_WEBHOOK_URI: ${{ secrets.TEAMS_WEBHOOK_URI }}
         with:
-          payload: |
-            {
-              \"text\": \"Prod deploy complete: ${{ github.repository }} (${{ github.sha }}) by ${{ github.actor }}\"
-            }
-
+          message: |
+            **Prod Deploy ${{ job.status }}** ${{ github.repository }} (${{ github.sha }}) by ${{ github.actor }}
