@@ -1,11 +1,5 @@
-terraform {
-  required_providers {
-    aws = {
-      source  = "hashicorp/aws"
-      version = "~> 5.0"
-    }
-  }
-}
+# AWS provider inherited from root - no local provider
+
 
 data "aws_vpc" "default" {
   default = true

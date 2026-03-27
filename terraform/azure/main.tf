@@ -1,4 +1,5 @@
-# Azure provider inherited from root
+# Azure provider inherited from root - no local provider
+
 
 resource "azurerm_kubernetes_cluster" "poc" {
   name                = var.cluster_name

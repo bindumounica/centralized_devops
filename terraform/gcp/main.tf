@@ -1,9 +1,5 @@
-# GCP provider inherited from root
+# GCP provider inherited from root - no local provider
 
-provider "google" {
-  project = var.project_id
-  region  = var.region
-}
 
 resource "google_container_cluster" "poc" {
   name     = var.cluster_name
