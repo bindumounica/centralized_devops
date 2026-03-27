@@ -1,1 +1,15 @@
-# Shared providers loaded by root/cloud
+terraform {
+  required_providers {
+    aws = {
+      source  = "hashicorp/aws"
+      version = "~> 5.0"
+    }
+  }
+}
+
+provider "aws" {
+  region = var.region
+}
+
+# For inherited modules
+

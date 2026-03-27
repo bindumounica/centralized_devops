@@ -18,9 +18,8 @@ data "aws_subnets" "default" {
   }
 }
 
-provider "aws" {
-  region = var.region
-}
+# AWS provider inherited from root
+
 
 resource "aws_iam_role" "cluster" {
   name = "${var.app_name}-cluster"

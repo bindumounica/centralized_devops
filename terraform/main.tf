@@ -1,54 +1,18 @@
-# Root config - calls shared modules + cloud infra
+# Cloud selector
+locals {
+  cloud_module = var.cloud_provider == "aws" ? "./aws" : var.cloud_provider == "gcp" ? "./gcp" : "./azure"
+}
 
-module "shared_app" {
-  source = "./modules/app-deployment"
+module "cloud_infra" {
+  source = local.cloud_module
   
-  cloud_provider = var.cloud_provider
-  deployment_type = var.deployment_type
-  app_name = var.app_name
-  app_image = var.app_image
-  replicas = var.replicas
-  namespace = var.namespace
+  region              = var.region
+  app_name            = var.app_name
+  cluster_name        = var.cluster_name
+  project_id          = var.project_id
+  resource_group_name = var.resource_group_name
+  location            = var.location
+  deployment_type     = var.deployment_type
+  app_image           = var.app_image
 }
 
-module "shared_monitoring" {
-  source = "./modules/monitoring"
-  
-  cloud_provider = var.cloud_provider
-  cluster_name = var.cluster_name
-}
-
-module "shared_secrets" {
-  source = "./modules/secrets"
-  
-  cloud_provider = var.cloud_provider
-  secret_name = "${var.app_name}-secret"
-  secret_value = var.app_secret
-}
-
-module "shared_deps" {
-  source = "./modules/dependencies"
-  
-  cloud_provider = var.cloud_provider
-  deps_enabled = var.deps_enabled
-}
-
-# Cloud infra (select one dir/script)
-# cd terraform/aws && terraform init/apply for AWS POC
-# AWS POC infra
-module "aws_cluster" {
-  source = "./aws"
-  
-  region = var.region
-  app_name = var.app_name
-  deployment_type = var.deployment_type
-  app_image = var.app_image
-  cloud_provider = "aws"
-  cluster_name = "poc-cluster"
-}
-
-
-# Outputs
-output "app_endpoint" {
-  value = module.shared_app.app_endpoint
-}
