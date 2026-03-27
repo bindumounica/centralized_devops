@@ -21,7 +21,8 @@ variable "cloud_provider" {
 
 variable "cluster_name" {
   type    = string
-  default = var.app_name
+  default = "poc-cluster"
 }
+
 
 
