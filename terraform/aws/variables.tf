@@ -20,6 +20,8 @@ variable "cloud_provider" {
 }
 
 variable "cluster_name" {
-  type = string
+  type    = string
+  default = var.app_name
 }
+
 
